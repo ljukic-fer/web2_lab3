@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<html>
+
+<head>
+    <title>Square destroyer</title>
+    <style>
+        canvas {
+            border: 1px solid #000000;
+            background-color: #f1f1f1;
+        }
+    </style>
+
+
+
+    <script>
+        var myGamePieces = [];
+        let possibleRects = [2, 3, 4, 5, 6, 7];
+        var numOfRects = possibleRects[Math.floor(Math.random() * possibleRects.length)];
+        hit = 0;
+        function startGame() {
+            var rem = document.getElementById("rects").innerHTML = numOfRects;
+
+            for (i = 0; i < numOfRects; i++) {
+                myGamePieces.push(new component(30, 30, "#0513ab", 670 * Math.random() + 40, 365 * Math.random() + 40))
+            }
+            //console.log(Math.floor(rem));
+            myGameArea.start();
+        }
+
+        var myGameArea = {
+            canvas: document.createElement("canvas"),
+            start: function () {
+                this.canvas.id = "myGameCanvas";
+                this.canvas.width = 720;
+                this.canvas.height = 405;
+                this.context = this.canvas.getContext("2d");
+                document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+
+                const can = document.querySelector('canvas');
+                this.canvas.addEventListener('mousedown', function (e) {
+                    checkCollision(can, e)
+                })
+
+                this.frameNo = 0;
+                this.interval = setInterval(updateGameArea, 20);
+            },
+            stop: function () {
+                clearInterval(this.interval);
+            },
+            clear: function () {
+                this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            }
+        }
+
+        function component(width, height, color, x, y, type) {
+            var sp = [-5, -4, -3, -2, -1, -0.5, 0.5, 1, 2, 3, 4, 5];
+            this.type = type;
+            this.width = width;
+            this.height = height;
+            this.speed_x = sp[Math.floor(Math.random() * sp.length)];
+            this.speed_y = sp[Math.floor(Math.random() * sp.length)];
+            this.x = x;
+            this.y = y;
+
+            this.update = function () {
+                ctx = myGameArea.context;
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.fillStyle = color;
+                ctx.fillRect(this.width / -2, this.height / -2, this.width, this.height);
+                ctx.restore();
+
+                ctx.font = "16px Arial";
+                ctx.textBaseline = "top";
+                ctx.textAlign = "end";
+                ctx.fillText("Remaining:", 700, 2);
+                ctx.fillText("Hit:", 700, 20);
+
+                ctx.fillText(myGamePieces.length, 715, 2);
+                ctx.fillText(hit, 715, 20);
+
+            }
+            this.newPos = function () {
+                pos = [1, 2, 3, 4, 5];
+                neg = [-1, -2, -3, -4, -5];
+                if (this.x - this.width / 2 < 0) {
+                    this.speed_x = pos[Math.floor(Math.random() * pos.length)];
+                }
+                else if ((this.x + this.width / 2) >= myGameArea.context.canvas.width)
+                    this.speed_x = -pos[Math.floor(Math.random() * pos.length)];
+                if (this.y - this.height / 2 < 0)
+                    this.speed_y = -pos[Math.floor(Math.random() * pos.length)];
+                else if ((this.y + this.height / 2) >= myGameArea.context.canvas.height)
+                    this.speed_y = pos[Math.floor(Math.random() * pos.length)];
+                this.x += this.speed_x;
+                this.y -= this.speed_y;
+            }
+        }
+
+        function updateGameArea() {
+            myGameArea.clear();
+            for (i = 0; i < myGamePieces.length; i++) {
+                myGamePieces[i].newPos();
+                myGamePieces[i].update();
+            }
+        }
+
+
+        function getCursorPosition(canvas, event) {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            console.log("x: " + x + " y: " + y);
+            console.log("Rektangl: " + myGamePieces[0].x)
+        }
+
+        function checkCollision(canvas, event) {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            console.log("x: " + x + " y: " + y);
+            for (i=0; i<myGamePieces.length; i++) {
+                if (x >= myGamePieces[i].x-15 && x <= myGamePieces[i].x+15
+                    && y >= myGamePieces[i].y-15 && y <= myGamePieces[i].y+15) {
+                        console.log("Rectangle: " + myGamePieces[i].x + "," + myGamePieces[i].y);
+                        //delete myGamePieces[i];
+                        newArr = [];
+                        for (k=0; k<myGamePieces.length; k++) {
+                            if (k!=i) {
+                                newArr.push(myGamePieces[k]);
+                            }
+                        }
+
+                        hit += 1
+                        myGamePieces = newArr;
+                        //ctx.clearRect(myGamePieces[i].x, myGamePieces[i].y, 30, 30);
+                    }
+            }
+
+            if (myGamePieces.length==0) {
+                window.location.reload();
+            }
+        }
+
+    </script>
+</head>
+
+<body onload="startGame()">
+    <h1>Squares: <span id="rects"></span></h1>
+</body>
+
+</html>
